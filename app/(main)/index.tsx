@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,16 +10,20 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  Keyboard,
 } from 'react-native';
 import { useChatStore, Message } from '@/src/store/useChatStore';
 import { useSettingsStore } from '@/src/store/useSettingsStore';
 import { useTheme } from '@/src/theme/useTheme';
 import { AIService, AIMessage } from '@/src/services/AIService';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ChatScreen() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   const {
@@ -33,9 +37,27 @@ export default function ChatScreen() {
   } = useChatStore();
   const { model, geminiApiKey, openRouterApiKey } = useSettingsStore();
   const c = useTheme();
+  
+  const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
 
   const currentSession = sessions.find((s) => s.id === activeSessionId);
   const messages = currentSession?.messages ?? [];
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const scrollToEnd = useCallback(() => {
     setTimeout(() => {
@@ -172,8 +194,8 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: c.bg }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={headerHeight}
     >
       {/* Messages */}
       {messages.length === 0 ? (
@@ -217,7 +239,14 @@ export default function ChatScreen() {
       )}
 
       {/* Input Bar */}
-      <View style={[styles.inputBar, { backgroundColor: c.surface, borderTopColor: c.border }]}>
+      <View style={[
+        styles.inputBar, 
+        { 
+          backgroundColor: c.surface, 
+          borderTopColor: c.border,
+          paddingBottom: isKeyboardVisible ? 12 : Math.max(insets.bottom, 12) 
+        }
+      ]}>
         <TextInput
           style={[
             styles.textInput,
@@ -314,7 +343,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    paddingBottom: Platform.OS === 'ios' ? 30 : 12,
     borderTopWidth: 1,
     gap: 8,
   },
