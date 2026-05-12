@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { sqliteStorage } from './sqliteStorage';
 
 interface SettingsState {
   theme: 'light' | 'dark';
@@ -11,14 +13,30 @@ interface SettingsState {
   setOpenRouterApiKey: (key: string) => void;
 }
 
-export const useSettingsStore = create<SettingsState>((set) => ({
-  theme: 'dark',
+const DEFAULT_STATE = {
+  theme: 'dark' as const,
   model: 'gemini-3-flash-preview',
   geminiApiKey: '',
   openRouterApiKey: '',
-  toggleTheme: () =>
-    set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
-  setModel: (model) => set({ model }),
-  setGeminiApiKey: (key) => set({ geminiApiKey: key }),
-  setOpenRouterApiKey: (key) => set({ openRouterApiKey: key }),
-}));
+};
+
+export const useSettingsStore = create<SettingsState>()(
+  persist(
+    (set) => ({
+      ...DEFAULT_STATE,
+      toggleTheme: () =>
+        set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+      setModel: (model) => set({ model }),
+      setGeminiApiKey: (key) => set({ geminiApiKey: key }),
+      setOpenRouterApiKey: (key) => set({ openRouterApiKey: key }),
+    }),
+    {
+      name: 'settings-storage',
+      storage: createJSONStorage(() => sqliteStorage),
+      merge: (persistedState: any, currentState: SettingsState) => {
+        if (!persistedState) return { ...currentState, ...DEFAULT_STATE };
+        return { ...currentState, ...persistedState };
+      },
+    }
+  )
+);

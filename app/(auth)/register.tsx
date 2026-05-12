@@ -13,30 +13,26 @@ import { useRouter, Link } from 'expo-router';
 import { useAuthStore } from '@/src/store/useAuthStore';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, loginAsGuest } = useAuthStore();
+  const { register } = useAuthStore();
   const router = useRouter();
 
-  const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      setError('Please enter email and password');
+  const handleRegister = async () => {
+    if (!email.trim() || !password.trim() || !name.trim()) {
+      setError('Please fill in all fields');
       return;
     }
     setError('');
-    const success = await login(email.trim(), password);
+    const success = await register(email.trim(), password, name.trim());
     if (success) {
       router.replace('/(main)');
     } else {
-      setError('Invalid email or password');
+      setError('Registration failed. Email might already exist.');
     }
-  };
-
-  const handleGuest = async () => {
-    await loginAsGuest();
-    router.replace('/(main)');
   };
 
   return (
@@ -57,15 +53,24 @@ export default function LoginScreen() {
             <View style={styles.logoCircle}>
               <Text style={styles.logoText}>N</Text>
             </View>
-            <Text style={styles.title}>Neurova AI</Text>
-            <Text style={styles.subtitle}>Welcome back to your companion</Text>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Join Neurova AI today</Text>
           </Animated.View>
 
           {/* Form */}
           <Animated.View entering={FadeInUp.delay(300).duration(800).springify()} style={styles.formWrap}>
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
             
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Your Name"
+              placeholderTextColor="#555D75"
+              value={name}
+              onChangeText={setName}
+            />
+
+            <Text style={[styles.label, { marginTop: 8 }]}>Email</Text>
             <TextInput
               style={styles.input}
               placeholder="you@example.com"
@@ -86,28 +91,18 @@ export default function LoginScreen() {
               secureTextEntry
             />
 
-            <TouchableOpacity style={styles.primaryBtn} onPress={handleLogin} activeOpacity={0.8}>
-              <Text style={styles.primaryBtnText}>Log In</Text>
+            <TouchableOpacity style={styles.primaryBtn} onPress={handleRegister} activeOpacity={0.8}>
+              <Text style={styles.primaryBtnText}>Sign Up</Text>
             </TouchableOpacity>
 
-            <View style={styles.registerRow}>
-              <Text style={styles.registerText}>Don't have an account? </Text>
-              <Link href="/(auth)/register" asChild>
+            <View style={styles.loginRow}>
+              <Text style={styles.loginText}>Already have an account? </Text>
+              <Link href="/(auth)/login" asChild>
                 <TouchableOpacity>
-                  <Text style={styles.registerLink}>Sign Up</Text>
+                  <Text style={styles.loginLink}>Log In</Text>
                 </TouchableOpacity>
               </Link>
             </View>
-
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity style={styles.ghostBtn} onPress={handleGuest} activeOpacity={0.8}>
-              <Text style={styles.ghostBtnText}>Continue as Guest</Text>
-            </TouchableOpacity>
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -165,29 +160,18 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   primaryBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
-  registerRow: {
+  loginRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 8,
   },
-  registerText: {
+  loginText: {
     color: '#8B93A7',
     fontSize: 14,
   },
-  registerLink: {
+  loginLink: {
     color: '#4F8EF7',
     fontSize: 14,
     fontWeight: '600',
   },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#2A3050' },
-  dividerText: { marginHorizontal: 16, color: '#555D75', fontSize: 14 },
-  ghostBtn: {
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#2A3050',
-  },
-  ghostBtnText: { fontSize: 16, fontWeight: '600', color: '#8B93A7' },
 });

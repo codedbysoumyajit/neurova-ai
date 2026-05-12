@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { sqliteStorage } from './sqliteStorage';
 
 export interface Message {
   id: string;
@@ -27,73 +29,89 @@ interface ChatState {
   renameSession: (id: string, title: string) => void;
 }
 
-export const useChatStore = create<ChatState>((set, get) => ({
+const DEFAULT_STATE = {
   sessions: [],
   activeSessionId: null,
+};
 
-  createSession: () => {
-    const newSession: ChatSession = {
-      id: Date.now().toString(),
-      title: 'New Chat',
-      messages: [],
-      updatedAt: Date.now(),
-    };
-    set((state) => ({
-      sessions: [newSession, ...state.sessions],
-      activeSessionId: newSession.id,
-    }));
-    return newSession.id;
-  },
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set, get) => ({
+      ...DEFAULT_STATE,
 
-  setActiveSession: (id) => set({ activeSessionId: id }),
+      createSession: () => {
+        const newSession: ChatSession = {
+          id: Date.now().toString(),
+          title: 'New Chat',
+          messages: [],
+          updatedAt: Date.now(),
+        };
+        set((state) => ({
+          sessions: [newSession, ...state.sessions],
+          activeSessionId: newSession.id,
+        }));
+        return newSession.id;
+      },
 
-  addMessage: (sessionId, message) =>
-    set((state) => ({
-      sessions: state.sessions.map((s) =>
-        s.id === sessionId
-          ? { ...s, messages: [...s.messages, message], updatedAt: Date.now() }
-          : s
-      ),
-    })),
+      setActiveSession: (id) => set({ activeSessionId: id }),
 
-  updateMessage: (sessionId, messageId, content) =>
-    set((state) => ({
-      sessions: state.sessions.map((s) =>
-        s.id === sessionId
-          ? {
-              ...s,
-              messages: s.messages.map((m) =>
-                m.id === messageId ? { ...m, content, isLoading: false } : m
-              ),
-            }
-          : s
-      ),
-    })),
+      addMessage: (sessionId, message) =>
+        set((state) => ({
+          sessions: state.sessions.map((s) =>
+            s.id === sessionId
+              ? { ...s, messages: [...s.messages, message], updatedAt: Date.now() }
+              : s
+          ),
+        })),
 
-  setMessageLoading: (sessionId, messageId, loading) =>
-    set((state) => ({
-      sessions: state.sessions.map((s) =>
-        s.id === sessionId
-          ? {
-              ...s,
-              messages: s.messages.map((m) =>
-                m.id === messageId ? { ...m, isLoading: loading } : m
-              ),
-            }
-          : s
-      ),
-    })),
+      updateMessage: (sessionId, messageId, content) =>
+        set((state) => ({
+          sessions: state.sessions.map((s) =>
+            s.id === sessionId
+              ? {
+                  ...s,
+                  messages: s.messages.map((m) =>
+                    m.id === messageId ? { ...m, content, isLoading: false } : m
+                  ),
+                }
+              : s
+          ),
+        })),
 
-  deleteSession: (id) =>
-    set((state) => ({
-      sessions: state.sessions.filter((s) => s.id !== id),
-      activeSessionId: state.activeSessionId === id ? null : state.activeSessionId,
-    })),
+      setMessageLoading: (sessionId, messageId, loading) =>
+        set((state) => ({
+          sessions: state.sessions.map((s) =>
+            s.id === sessionId
+              ? {
+                  ...s,
+                  messages: s.messages.map((m) =>
+                    m.id === messageId ? { ...m, isLoading: loading } : m
+                  ),
+                }
+              : s
+          ),
+        })),
 
-  renameSession: (id, title) =>
-    set((state) => ({
-      sessions: state.sessions.map((s) =>
-        s.id === id ? { ...s, title } : s
-      ),
-    })),
-}));
+      deleteSession: (id) =>
+        set((state) => ({
+          sessions: state.sessions.filter((s) => s.id !== id),
+          activeSessionId: state.activeSessionId === id ? null : state.activeSessionId,
+        })),
+
+      renameSession: (id, title) =>
+        set((state) => ({
+          sessions: state.sessions.map((s) =>
+            s.id === id ? { ...s, title } : s
+          ),
+        })),
+    }),
+    {
+      name: 'chat-storage',
+      storage: createJSONStorage(() => sqliteStorage),
+      merge: (persistedState: any, currentState: ChatState) => {
+        if (!persistedState) return { ...currentState, ...DEFAULT_STATE };
+        return { ...currentState, ...persistedState };
+      },
+    }
+  )
+);
