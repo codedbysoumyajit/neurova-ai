@@ -1,24 +1,25 @@
+import { useSettingsStore } from '@/src/store/useSettingsStore';
+import { useTheme } from '@/src/theme/useTheme';
 import React from 'react';
 import {
-  View,
+  ScrollView,
+  StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Switch,
+  View,
 } from 'react-native';
-import { useSettingsStore } from '@/src/store/useSettingsStore';
-import { useTheme } from '@/src/theme/useTheme';
 
 const MODELS = [
   // Gemini API
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro', speed: '🧠 High', provider: 'Google' },
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', speed: '⚡ Fast', provider: 'Google' },
-  
+
   // OpenRouter API
+  { id: 'openai/gpt-oss-120b:free', name: 'GPT OSS 120B', speed: '🧠 High', provider: 'Open AI' },
   { id: 'nvidia/nemotron-3-super-120b-a12b:free', name: 'Nemotron 3 Super', speed: '🚀 Ultra', provider: 'NVIDIA' },
-  { id: 'minimax/minimax-m2.5:free', name: 'MiniMax m2.5', speed: '🧠 Smart', provider: 'MiniMax' },
+  { id: 'minimax/minimax-m2.5:free', name: 'MiniMax M2.5', speed: '🧠 Smart', provider: 'MiniMax' },
   { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B', speed: '⚡ Fast', provider: 'Meta' },
   { id: 'qwen/qwen3-coder:free', name: 'Qwen 3 Coder', speed: '💻 Code', provider: 'Qwen' },
 ];
