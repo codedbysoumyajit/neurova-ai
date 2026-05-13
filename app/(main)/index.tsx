@@ -44,14 +44,26 @@ export default function ChatScreen() {
   const currentSession = sessions.find((s) => s.id === activeSessionId);
   const messages = currentSession?.messages ?? [];
 
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
   useEffect(() => {
     const showSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => setKeyboardVisible(true)
+      (e) => {
+        setKeyboardVisible(true);
+        if (Platform.OS === 'android') {
+          setKeyboardHeight(e.endCoordinates.height);
+        }
+      }
     );
     const hideSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardVisible(false)
+      () => {
+        setKeyboardVisible(false);
+        if (Platform.OS === 'android') {
+          setKeyboardHeight(0);
+        }
+      }
     );
     return () => {
       showSub.remove();
@@ -192,14 +204,15 @@ export default function ChatScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: c.bg }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-      keyboardVerticalOffset={headerHeight}
-    >
-      {/* Messages */}
-      {messages.length === 0 ? (
-        <View style={styles.emptyState}>
+    <View style={[{ flex: 1, backgroundColor: c.bg, paddingBottom: Platform.OS === 'android' ? keyboardHeight : 0 }]}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
+      >
+        {/* Messages */}
+        {messages.length === 0 ? (
+          <View style={styles.emptyState}>
           <Animated.View entering={FadeIn.duration(600)} style={styles.emptyInner}>
             <View style={[styles.emptyOrb, { backgroundColor: c.primaryGlow, borderColor: c.primary }]}>
               <Text style={[styles.emptyOrbText, { color: c.primary }]}>N</Text>
@@ -283,7 +296,8 @@ export default function ChatScreen() {
           )}
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
