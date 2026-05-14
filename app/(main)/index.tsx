@@ -181,14 +181,22 @@ export default function ChatScreen() {
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       (e) => {
         setKeyboardVisible(true);
-        if (Platform.OS === 'android') setKeyboardHeight(e.endCoordinates.height);
+        if (Platform.OS === 'android') {
+          // Add a small buffer to prevent the slight overlap
+          setKeyboardHeight(e.endCoordinates.height + 12);
+        }
       }
     );
     const hideSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
       () => {
         setKeyboardVisible(false);
-        if (Platform.OS === 'android') setKeyboardHeight(0);
+        if (Platform.OS === 'android') {
+          setKeyboardHeight(0);
+        }
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
       }
     );
     return () => {
