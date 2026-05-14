@@ -10,18 +10,30 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {
+  Moon,
+  Sun,
+  BrainCircuit,
+  Zap,
+  Cpu,
+  Code,
+  Key,
+  Info,
+  Palette,
+  CheckCircle2,
+} from 'lucide-react-native';
 
 const MODELS = [
   // Gemini API
-  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro', speed: '🧠 High', provider: 'Google' },
-  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', speed: '⚡ Fast', provider: 'Google' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro', speed: 'High', icon: BrainCircuit, provider: 'Google' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', speed: 'Fast', icon: Zap, provider: 'Google' },
 
   // OpenRouter API
-  { id: 'openai/gpt-oss-120b:free', name: 'GPT OSS 120B', speed: '🧠 High', provider: 'Open AI' },
-  { id: 'nvidia/nemotron-3-super-120b-a12b:free', name: 'Nemotron 3 Super', speed: '🚀 Ultra', provider: 'NVIDIA' },
-  { id: 'minimax/minimax-m2.5:free', name: 'MiniMax M2.5', speed: '🧠 Smart', provider: 'MiniMax' },
-  { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B', speed: '⚡ Fast', provider: 'Meta' },
-  { id: 'qwen/qwen3-coder:free', name: 'Qwen 3 Coder', speed: '💻 Code', provider: 'Qwen' },
+  { id: 'openai/gpt-oss-120b:free', name: 'GPT OSS 120B', speed: 'High', icon: BrainCircuit, provider: 'Open AI' },
+  { id: 'nvidia/nemotron-3-super-120b-a12b:free', name: 'Nemotron 3 Super', speed: 'Ultra', icon: Cpu, provider: 'NVIDIA' },
+  { id: 'minimax/minimax-m2.5:free', name: 'MiniMax M2.5', speed: 'Smart', icon: BrainCircuit, provider: 'MiniMax' },
+  { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B', speed: 'Fast', icon: Zap, provider: 'Meta' },
+  { id: 'qwen/qwen3-coder:free', name: 'Qwen 3 Coder', speed: 'Code', icon: Code, provider: 'Qwen' },
 ];
 
 export default function SettingsScreen() {
@@ -41,12 +53,18 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.bg }]} contentContainerStyle={styles.content}>
       {/* Theme */}
-      <Text style={[styles.sectionTitle, { color: c.text }]}>Appearance</Text>
+      <View style={styles.sectionHeader}>
+        <Palette size={18} color={c.textSecondary} />
+        <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>Appearance</Text>
+      </View>
       <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }]}>
         <View style={styles.cardRow}>
-          <Text style={[styles.cardLabel, { color: c.text }]}>
-            {isDark ? '🌙' : '☀️'} Dark Mode
-          </Text>
+          <View style={styles.cardLabelRow}>
+            {isDark ? <Moon size={20} color={c.text} /> : <Sun size={20} color={c.text} />}
+            <Text style={[styles.cardLabel, { color: c.text }]}>
+              Dark Mode
+            </Text>
+          </View>
           <Switch
             value={isDark}
             onValueChange={toggleTheme}
@@ -57,10 +75,15 @@ export default function SettingsScreen() {
       </View>
 
       {/* Model Selection */}
-      <Text style={[styles.sectionTitle, { color: c.text }]}>Model</Text>
+      <View style={styles.sectionHeader}>
+        <Cpu size={18} color={c.textSecondary} />
+        <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>Model Selection</Text>
+      </View>
       <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }]}>
-        {MODELS.map((m) => {
+        {MODELS.map((m, index) => {
           const isActive = model === m.id;
+          const isLast = index === MODELS.length - 1;
+          const Icon = m.icon;
           return (
             <TouchableOpacity
               key={m.id}
@@ -68,12 +91,16 @@ export default function SettingsScreen() {
                 styles.modelItem,
                 {
                   backgroundColor: isActive ? c.primaryGlow : 'transparent',
-                  borderColor: isActive ? c.primary + '50' : c.border,
+                  borderBottomColor: c.border,
+                  borderBottomWidth: isLast ? 0 : 1,
                 },
               ]}
               onPress={() => setModel(m.id)}
               activeOpacity={0.7}
             >
+              <View style={[styles.modelIconContainer, { backgroundColor: isActive ? c.primary : c.surfaceLight }]}>
+                <Icon size={18} color={isActive ? '#fff' : c.textSecondary} />
+              </View>
               <View style={styles.modelInfo}>
                 <Text style={[styles.modelName, { color: isActive ? c.primary : c.text }]}>
                   {m.name}
@@ -83,7 +110,7 @@ export default function SettingsScreen() {
                 </Text>
               </View>
               {isActive && (
-                <View style={[styles.activeIndicator, { backgroundColor: c.primary }]} />
+                <CheckCircle2 size={20} color={c.primary} />
               )}
             </TouchableOpacity>
           );
@@ -91,7 +118,10 @@ export default function SettingsScreen() {
       </View>
 
       {/* API Keys */}
-      <Text style={[styles.sectionTitle, { color: c.text }]}>API Keys</Text>
+      <View style={styles.sectionHeader}>
+        <Key size={18} color={c.textSecondary} />
+        <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>API Configuration</Text>
+      </View>
       <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }]}>
         <Text style={[styles.keyLabel, { color: c.textSecondary }]}>Gemini API Key</Text>
         <TextInput
@@ -118,8 +148,9 @@ export default function SettingsScreen() {
 
       {/* Info */}
       <View style={[styles.infoCard, { backgroundColor: c.primaryGlow, borderColor: c.primary + '30' }]}>
+        <Info size={20} color={c.primary} style={{ marginTop: 2 }} />
         <Text style={[styles.infoText, { color: c.primary }]}>
-          💡 Get a free Gemini API key at{' '}
+          Get a free Gemini API key at{' '}
           <Text style={{ fontWeight: '700' }}>aistudio.google.com</Text>
         </Text>
       </View>
@@ -130,9 +161,10 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
-  sectionTitle: { fontSize: 14, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, marginTop: 24, marginLeft: 4 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, marginTop: 28, marginLeft: 6, gap: 8 },
+  sectionTitle: { fontSize: 13, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
   card: {
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     overflow: 'hidden',
   },
@@ -142,39 +174,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 18,
   },
+  cardLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cardLabel: { fontSize: 16, fontWeight: '500' },
   modelItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  modelIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
   },
   modelInfo: { flex: 1 },
   modelName: { fontSize: 15, fontWeight: '600' },
-  modelMeta: { fontSize: 13, marginTop: 2 },
-  activeIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginLeft: 12,
-  },
-  keyLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginLeft: 4, paddingHorizontal: 18, paddingTop: 16 },
+  modelMeta: { fontSize: 13, marginTop: 4 },
+  keyLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginLeft: 4, paddingHorizontal: 18, paddingTop: 18 },
   keyInput: {
     marginHorizontal: 14,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 15,
     borderWidth: 1,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   infoCard: {
-    borderRadius: 14,
+    flexDirection: 'row',
+    borderRadius: 16,
     borderWidth: 1,
     padding: 16,
-    marginTop: 24,
+    marginTop: 28,
+    gap: 12,
   },
-  infoText: { fontSize: 14, lineHeight: 20 },
+  infoText: { flex: 1, fontSize: 14, lineHeight: 22 },
 });

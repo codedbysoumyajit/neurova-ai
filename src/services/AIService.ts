@@ -12,7 +12,8 @@ export class AIService {
     messages: AIMessage[],
     model: string,
     geminiKey: string,
-    openRouterKey: string
+    openRouterKey: string,
+    signal?: AbortSignal
   ): Promise<string> {
     const isGemini = model.startsWith('gemini');
 
@@ -29,6 +30,7 @@ export class AIService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: geminiMessages }),
+        signal,
       });
 
       if (!response.ok) {
@@ -62,6 +64,7 @@ export class AIService {
           model: model,
           messages: openRouterMessages,
         }),
+        signal,
       });
 
       if (!response.ok) {

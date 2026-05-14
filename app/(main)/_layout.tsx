@@ -9,8 +9,10 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
+  Modal,
+  TouchableWithoutFeedback,
+  StyleSheet,
 } from 'react-native';
 import {
   DrawerContentScrollView,
@@ -19,7 +21,7 @@ import {
 function CustomDrawerContent(props: any) {
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
-  const { sessions, activeSessionId, createSession, setActiveSession } = useChatStore();
+  const { sessions, activeSessionId, createSession, setActiveSession, deleteSession } = useChatStore();
   const router = useRouter();
   const c = useTheme();
 
@@ -38,6 +40,27 @@ function CustomDrawerContent(props: any) {
     setActiveSession(id);
     router.push('/(main)');
     props.navigation.closeDrawer();
+  };
+
+  const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
+  const [chatToDelete, setChatToDelete] = React.useState<{ id: string; title: string } | null>(null);
+
+  const handleDeleteChat = (id: string, title: string) => {
+    setChatToDelete({ id, title });
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDelete = () => {
+    if (chatToDelete) {
+      deleteSession(chatToDelete.id);
+    }
+    setDeleteModalVisible(false);
+    setChatToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalVisible(false);
+    setChatToDelete(null);
   };
 
   return (
@@ -79,20 +102,21 @@ function CustomDrawerContent(props: any) {
                 },
               ]}
               onPress={() => handleSelectChat(session.id)}
+              onLongPress={() => handleDeleteChat(session.id, session.title)}
+              delayLongPress={400}
               activeOpacity={0.7}
             >
-              <Text
-                style={[
-                  styles.chatItemText,
-                  { color: isActive ? c.primary : c.textSecondary },
-                ]}
-                numberOfLines={1}
-              >
-                {session.title}
-              </Text>
-              <Text style={[styles.chatItemMeta, { color: c.textSecondary }]}>
-                {session.messages.length} msgs
-              </Text>
+              <View style={styles.chatItemLeft}>
+                <Text
+                  style={[styles.chatItemText, { color: isActive ? c.primary : c.text }]}
+                  numberOfLines={1}
+                >
+                  {session.title}
+                </Text>
+                <Text style={[styles.chatItemMeta, { color: c.textSecondary }]}>
+                  {session.messages.length} msgs
+                </Text>
+              </View>
             </TouchableOpacity>
           );
         })}
@@ -119,6 +143,44 @@ function CustomDrawerContent(props: any) {
           <Text style={[styles.footerBtnText, { color: c.danger }]}>↪ Log Out</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={cancelDelete}
+      >
+        <TouchableWithoutFeedback onPress={cancelDelete}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.modalContent, { backgroundColor: c.surface, borderColor: c.border }]}>
+                <View style={[styles.modalIconContainer, { backgroundColor: c.danger + '1A' }]}>
+                  <Text style={[styles.modalIcon, { color: c.danger }]}>🗑</Text>
+                </View>
+                <Text style={[styles.modalTitle, { color: c.text }]}>Delete Chat</Text>
+                <Text style={[styles.modalMessage, { color: c.textSecondary }]}>
+                  Are you sure you want to delete <Text style={{ fontWeight: '700', color: c.text }}>"{chatToDelete?.title}"</Text>? This action cannot be undone.
+                </Text>
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    style={[styles.modalBtn, styles.modalCancelBtn, { borderColor: c.border }]}
+                    onPress={cancelDelete}
+                  >
+                    <Text style={[styles.modalBtnText, { color: c.textSecondary }]}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalBtn, styles.modalDeleteBtn, { backgroundColor: c.danger }]}
+                    onPress={confirmDelete}
+                  >
+                    <Text style={[styles.modalBtnText, { color: '#fff' }]}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 }
@@ -181,10 +243,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  chatItemText: { fontSize: 15, fontWeight: '500', flex: 1, marginRight: 8 },
-  chatItemMeta: { fontSize: 12 },
+  chatItemText: { fontSize: 14, fontWeight: '500', marginRight: 4 },
+  chatItemMeta: { fontSize: 11, marginTop: 1 },
+  chatItemLeft: { flex: 1, marginRight: 4 },
   emptyText: { textAlign: 'center', marginTop: 32, fontSize: 14 },
   drawerFooter: { paddingHorizontal: 20, paddingVertical: 16, borderTopWidth: 1, gap: 8 },
   drawerFooterBtn: { paddingVertical: 10 },
   footerBtnText: { fontSize: 15, fontWeight: '500' },
+
+  // Modal Styles
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContent: { width: '100%', maxWidth: 340, borderRadius: 24, padding: 24, alignItems: 'center', borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 24, elevation: 10 },
+  modalIconContainer: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  modalIcon: { fontSize: 24 },
+  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
+  modalMessage: { fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  modalActions: { flexDirection: 'row', width: '100%', gap: 12 },
+  modalBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  modalCancelBtn: { borderWidth: 1 },
+  modalDeleteBtn: {},
+  modalBtnText: { fontSize: 16, fontWeight: '600' },
 });

@@ -25,6 +25,7 @@ interface ChatState {
   addMessage: (sessionId: string, message: Message) => void;
   updateMessage: (sessionId: string, messageId: string, content: string) => void;
   setMessageLoading: (sessionId: string, messageId: string, loading: boolean) => void;
+  deleteMessage: (sessionId: string, messageId: string) => void;
   deleteSession: (id: string) => void;
   renameSession: (id: string, title: string) => void;
 }
@@ -88,6 +89,15 @@ export const useChatStore = create<ChatState>()(
                     m.id === messageId ? { ...m, isLoading: loading } : m
                   ),
                 }
+              : s
+          ),
+        })),
+
+      deleteMessage: (sessionId, messageId) =>
+        set((state) => ({
+          sessions: state.sessions.map((s) =>
+            s.id === sessionId
+              ? { ...s, messages: s.messages.filter((m) => m.id !== messageId) }
               : s
           ),
         })),
