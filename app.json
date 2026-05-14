@@ -38,7 +38,8 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "./withSplitApks.js"
     ],
     "experiments": {
       "typedRoutes": true,
