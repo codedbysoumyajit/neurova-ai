@@ -13,6 +13,8 @@ import {
   Keyboard,
   Clipboard,
   AppState,
+  Image,
+  useWindowDimensions,
 } from 'react-native';
 import { useChatStore, Message } from '@/src/store/useChatStore';
 import { useSettingsStore } from '@/src/store/useSettingsStore';
@@ -28,6 +30,16 @@ import { useHeaderHeight } from '@react-navigation/elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThinkingAnimation } from '@/src/components/ThinkingAnimation';
 import { MarkdownRenderer } from '@/src/components/MarkdownRenderer';
+
+const MODEL_NAMES: Record<string, string> = {
+  'gemini-3.1-pro-preview': 'Gemini 3.1 Pro',
+  'gemini-3-flash-preview': 'Gemini 3 Flash',
+  'openai/gpt-oss-120b:free': 'GPT OSS 120B',
+  'nvidia/nemotron-3-super-120b-a12b:free': 'Nemotron 3 Super',
+  'minimax/minimax-m2.5:free': 'MiniMax M2.5',
+  'meta-llama/llama-3.3-70b-instruct:free': 'Llama 3.3 70B',
+  'qwen/qwen3-coder:free': 'Qwen 3 Coder',
+};
 
 // ─── Message Action Bar ───────────────────────────────────────────────────────
 
@@ -80,7 +92,7 @@ function MessageActions({
 
 // ─── Single Message Row ───────────────────────────────────────────────────────
 
-function MessageRow({
+const MessageRow = React.memo(({
   item,
   sessionId,
   c,
@@ -88,9 +100,11 @@ function MessageRow({
   item: Message;
   sessionId: string;
   c: ReturnType<typeof useTheme>;
-}) {
+}) => {
   const [showActions, setShowActions] = useState(false);
   const isUser = item.role === 'user';
+  const { width } = useWindowDimensions();
+  const maxBubbleWidth = Math.min(width * 0.85, 700);
 
   const handleLongPress = () => {
     if (!item.isLoading && item.content) {
@@ -104,9 +118,10 @@ function MessageRow({
       <View style={[styles.msgRow, { justifyContent: isUser ? 'flex-end' : 'flex-start' }]}>
         {/* AI Avatar */}
         {!isUser && (
-          <View style={[styles.avatar, { backgroundColor: c.primaryGlow, borderColor: c.primary }]}>
-            <Text style={[styles.avatarText, { color: c.primary }]}>N</Text>
-          </View>
+          <Image 
+            source={require('../../assets/images/icon.png')} 
+            style={[styles.avatar, { borderColor: c.border }]} 
+          />
         )}
 
         <TouchableOpacity
@@ -115,6 +130,7 @@ function MessageRow({
           delayLongPress={380}
           style={[
             styles.bubble,
+            { maxWidth: maxBubbleWidth },
             isUser
               ? { backgroundColor: c.userBubble, borderBottomRightRadius: 6 }
               : { backgroundColor: c.aiBubble, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: c.border },
@@ -128,7 +144,14 @@ function MessageRow({
               {item.content}
             </Text>
           ) : (
-            <MarkdownRenderer content={item.content} />
+            <View>
+              <MarkdownRenderer content={item.content} />
+              {item.modelName && (
+                <Text style={[styles.modelNameTag, { color: c.textSecondary }]}>
+                  {item.modelName}
+                </Text>
+              )}
+            </View>
           )}
         </TouchableOpacity>
       </View>
@@ -146,7 +169,15 @@ function MessageRow({
       )}
     </Animated.View>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison to only re-render if message content/loading state changes
+  return (
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.item.content === nextProps.item.content &&
+    prevProps.item.isLoading === nextProps.item.isLoading &&
+    prevProps.c === nextProps.c
+  );
+});
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
@@ -288,6 +319,7 @@ export default function ChatScreen() {
       content: '',
       createdAt: Date.now(),
       isLoading: true,
+      modelName: MODEL_NAMES[model] || model,
     };
     addMessage(sessionId, aiMsg);
     setLoading(true);
@@ -300,6 +332,7 @@ export default function ChatScreen() {
         useChatStore.getState().sessions.find((s) => s.id === sessionId)?.messages ?? [];
       const history: AIMessage[] = currentMessages
         .filter((m) => m.content && !m.isLoading)
+        .slice(-20) // Limit history to last 20 messages to reduce payload size & latency
         .map((m) => ({ role: m.role, content: m.content }));
 
       const response = await AIService.sendMessage(history, model, geminiApiKey, openRouterApiKey, abortControllerRef.current.signal);
@@ -341,9 +374,10 @@ export default function ChatScreen() {
         {messages.length === 0 ? (
           <View style={styles.emptyState}>
             <Animated.View entering={FadeIn.duration(600)} style={styles.emptyInner}>
-              <View style={[styles.emptyOrb, { backgroundColor: c.primaryGlow, borderColor: c.primary }]}>
-                <Text style={[styles.emptyOrbText, { color: c.primary }]}>N</Text>
-              </View>
+              <Image 
+                source={require('../../assets/images/icon.png')} 
+                style={styles.emptyOrb} 
+              />
               <Text style={[styles.emptyTitle, { color: c.text }]}>How can I help you?</Text>
               <Text style={[styles.emptySubtitle, { color: c.textSecondary }]}>
                 Ask me anything — code, ideas, analysis, writing…
@@ -374,6 +408,10 @@ export default function ChatScreen() {
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            removeClippedSubviews={Platform.OS === 'android'}
           />
         )}
 
@@ -432,11 +470,9 @@ const styles = StyleSheet.create({
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
   emptyInner: { alignItems: 'center' },
   emptyOrb: {
-    width: 80, height: 80, borderRadius: 40,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, marginBottom: 20,
+    width: 80, height: 80, borderRadius: 24,
+    marginBottom: 20,
   },
-  emptyOrbText: { fontSize: 32, fontWeight: '700' },
   emptyTitle: { fontSize: 24, fontWeight: '700', marginBottom: 8 },
   emptySubtitle: { fontSize: 15, textAlign: 'center', lineHeight: 22 },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 24, gap: 8 },
@@ -446,13 +482,10 @@ const styles = StyleSheet.create({
   // Messages
   msgRow: { flexDirection: 'row', marginBottom: 4, alignItems: 'flex-end' },
   avatar: {
-    width: 30, height: 30, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
+    width: 30, height: 30, borderRadius: 8,
     marginRight: 8, borderWidth: 1, flexShrink: 0,
   },
-  avatarText: { fontSize: 14, fontWeight: '700' },
   bubble: {
-    maxWidth: '80%',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,
@@ -461,6 +494,13 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   msgText: { fontSize: 15, lineHeight: 22 },
+  modelNameTag: {
+    fontSize: 10,
+    fontWeight: '600',
+    alignSelf: 'flex-end',
+    marginTop: 6,
+    opacity: 0.6,
+  },
 
   // Action bar
   actionBar: {

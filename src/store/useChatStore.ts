@@ -8,6 +8,7 @@ export interface Message {
   content: string;
   createdAt: number;
   isLoading?: boolean;
+  modelName?: string;
 }
 
 export interface ChatSession {

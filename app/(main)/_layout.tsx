@@ -13,6 +13,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
   StyleSheet,
+  Image,
 } from 'react-native';
 import {
   DrawerContentScrollView,
@@ -68,9 +69,11 @@ function CustomDrawerContent(props: any) {
       {/* Header */}
       <View style={[styles.drawerHeader, { borderBottomColor: c.border }]}>
         <View style={styles.drawerLogoRow}>
-          <View style={[styles.drawerLogoCircle, { backgroundColor: c.primaryGlow, borderColor: c.primary }]}>
-            <Text style={[styles.drawerLogoText, { color: c.primary }]}>N</Text>
-          </View>
+          <Image 
+            source={require('../../assets/images/icon.png')} 
+            style={styles.drawerLogoImage} 
+            resizeMode="contain" 
+          />
           <View>
             <Text style={[styles.drawerTitle, { color: c.text }]}>Neurova AI</Text>
             <Text style={[styles.drawerSubtitle, { color: c.textSecondary }]}>
@@ -209,17 +212,13 @@ const styles = StyleSheet.create({
   drawerContainer: { flex: 1 },
   drawerHeader: { paddingTop: 56, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1 },
   drawerLogoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  drawerLogoCircle: {
-    width: 40,
-    height: 40,
+  drawerLogoImage: {
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginRight: 12,
-    borderWidth: 1,
   },
-  drawerLogoText: { fontSize: 18, fontWeight: '700' },
-  drawerTitle: { fontSize: 18, fontWeight: '700' },
+  drawerTitle: { fontSize: 20, fontWeight: '800' },
   drawerSubtitle: { fontSize: 13, marginTop: 1 },
   newChatBtn: {
     borderRadius: 14,
