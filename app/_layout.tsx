@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { initDB } from '@/src/services/DatabaseService';
 import { useAuthStore } from '@/src/store/useAuthStore';
 import * as SplashScreen from 'expo-splash-screen';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,13 +42,15 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(main)" />
-      </Stack>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+        <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(main)" />
+        </Stack>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

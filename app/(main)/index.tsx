@@ -30,6 +30,10 @@ import { useHeaderHeight } from '@react-navigation/elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThinkingAnimation } from '@/src/components/ThinkingAnimation';
 import { MarkdownRenderer } from '@/src/components/MarkdownRenderer';
+import {
+  LongPressGestureHandler,
+  State as GHState,
+} from 'react-native-gesture-handler';
 
 const MODEL_NAMES: Record<string, string> = {
   'gemini-3.1-pro-preview': 'Gemini 3.1 Pro',
@@ -104,13 +108,22 @@ const MessageRow = React.memo(({
   const [showActions, setShowActions] = useState(false);
   const isUser = item.role === 'user';
   const { width } = useWindowDimensions();
-  const maxBubbleWidth = Math.min(width * 0.85, 700);
+  const maxBubbleWidth = Math.min(width * 0.88, 700);
 
-  const handleLongPress = () => {
-    if (!item.isLoading && item.content) {
+  const onLongPress = ({ nativeEvent }: any) => {
+    if (nativeEvent.state === GHState.ACTIVE && !item.isLoading && item.content) {
       setShowActions((v) => !v);
     }
   };
+
+  const bubbleStyle = [
+    styles.bubble,
+    { maxWidth: maxBubbleWidth },
+    isUser
+      ? { backgroundColor: c.userBubble, borderBottomRightRadius: 6 }
+      : { backgroundColor: c.aiBubble, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: c.border },
+    showActions && styles.bubbleActive,
+  ];
 
   return (
     <Animated.View entering={FadeInDown.duration(280).delay(40)}>
@@ -118,45 +131,35 @@ const MessageRow = React.memo(({
       <View style={[styles.msgRow, { justifyContent: isUser ? 'flex-end' : 'flex-start' }]}>
         {/* AI Avatar */}
         {!isUser && (
-          <Image 
-            source={require('../../assets/images/icon.png')} 
-            style={[styles.avatar, { borderColor: c.border }]} 
+          <Image
+            source={require('../../assets/images/icon.png')}
+            style={[styles.avatar, { borderColor: c.border }]}
           />
         )}
 
-        <TouchableOpacity
-          activeOpacity={0.88}
-          onLongPress={handleLongPress}
-          delayLongPress={380}
-          style={[
-            styles.bubble,
-            { maxWidth: maxBubbleWidth },
-            isUser
-              ? { backgroundColor: c.userBubble, borderBottomRightRadius: 6 }
-              : { backgroundColor: c.aiBubble, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: c.border },
-            showActions && styles.bubbleActive,
-          ]}
-        >
-          {item.isLoading ? (
-            <ThinkingAnimation />
-          ) : isUser ? (
-            <Text style={[styles.msgText, { color: '#fff' }]} selectable>
-              {item.content}
-            </Text>
-          ) : (
-            <View>
-              <MarkdownRenderer content={item.content} />
-              {item.modelName && (
-                <Text style={[styles.modelNameTag, { color: c.textSecondary }]}>
-                  {item.modelName}
-                </Text>
-              )}
-            </View>
-          )}
-        </TouchableOpacity>
+        <LongPressGestureHandler onHandlerStateChange={onLongPress} minDurationMs={380}>
+          <View style={bubbleStyle}>
+            {item.isLoading ? (
+              <ThinkingAnimation />
+            ) : isUser ? (
+              <Text style={[styles.msgText, { color: '#fff' }]} selectable>
+                {item.content}
+              </Text>
+            ) : (
+              <View>
+                <MarkdownRenderer content={item.content} />
+                {item.modelName && (
+                  <Text style={[styles.modelNameTag, { color: c.textSecondary }]}>
+                    {item.modelName}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+        </LongPressGestureHandler>
       </View>
 
-      {/* Action bar — slides up below the bubble */}
+      {/* Action bar */}
       {showActions && !item.isLoading && (
         <MessageActions
           isUser={isUser}
@@ -170,7 +173,6 @@ const MessageRow = React.memo(({
     </Animated.View>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison to only re-render if message content/loading state changes
   return (
     prevProps.item.id === nextProps.item.id &&
     prevProps.item.content === nextProps.item.content &&
