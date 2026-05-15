@@ -11,11 +11,11 @@ import {
   ActivityIndicator,
   Alert,
   Keyboard,
-  Clipboard,
   AppState,
   Image,
   useWindowDimensions,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useChatStore, Message } from '@/src/store/useChatStore';
 import { useSettingsStore } from '@/src/store/useSettingsStore';
 import { useTheme } from '@/src/theme/useTheme';
@@ -60,8 +60,8 @@ function MessageActions({
 }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    Clipboard.setString(content);
+  const handleCopy = async () => {
+    await Clipboard.setStringAsync(content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 13, fontWeight: '500' },
 
   // Messages
-  msgRow: { flexDirection: 'row', marginBottom: 4, alignItems: 'flex-end' },
+  msgRow: { flexDirection: 'row', marginBottom: 16, alignItems: 'flex-end' },
   avatar: {
     width: 30, height: 30, borderRadius: 8,
     marginRight: 8, borderWidth: 1, flexShrink: 0,
