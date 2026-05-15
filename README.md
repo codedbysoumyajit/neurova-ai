@@ -1,50 +1,72 @@
-# Welcome to your Expo app 👋
+<div align="center">
+  <img src="assets/images/icon.png" width="120" alt="Neurova AI Logo" />
+  <h1>Neurova AI</h1>
+  <p><strong>A secure, multi-model, multi-user AI companion for iOS & Android.</strong></p>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+  <p>
+    <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue?style=for-the-badge&logo=android" alt="Platform" />
+    <img src="https://img.shields.io/badge/Framework-React%20Native%20%2F%20Expo-000000?style=for-the-badge&logo=react" alt="React Native" />
+    <img src="https://img.shields.io/badge/Status-Beta-orange?style=for-the-badge" alt="Status" />
+  </p>
+</div>
 
-## Get started
+<br />
 
-1. Install dependencies
+Neurova AI is a privacy-first, premium chat application designed to bring the power of multiple state-of-the-art LLMs right to your pocket. Built with React Native and Expo, it features isolated multi-user local storage, fluid native gesture handling, and a zero-compromise beautiful dark interface.
 
+## ✨ Current Features
+
+*   🧠 **Multi-Model Support:** Connect seamlessly to Gemini API or utilize OpenRouter to switch instantly between massive models like *Llama 3.3 70B, Qwen 3 Coder, MiniMax M2.5, and Nemotron 3 Super*.
+*   🔐 **Local, Isolated Multi-User Profiles:** Complete offline SQLite database ensures your chat history stays exclusively on your device. Separate user profiles (plus a Guest Mode) keep conversations private and localized.
+*   🛑 **Fluid Generation Control:** Stream responses in real-time with full AbortController support. Change your mind? Stop the AI mid-sentence with zero latency.
+*   💅 **Premium Markdown & Code Rendering:** Beautifully formatted syntax highlighting, horizontal scrolling tables, blockquotes, and one-tap code copying.
+*   📱 **Cross-Platform & Highly Optimized:** Heavily optimized `FlatList` virtualized rendering and fully anchored gesture bindings ensure crisp 60FPS scrolling, even through massive 100+ message chat histories.
+*   🛠️ **Automated Build Pipeline:** GitHub Actions automatically spin up and split architecture-specific Android APKs (`arm64-v8a`, `armeabi-v7a`, `x86_64`) entirely for free on every release.
+
+---
+
+## 🗺️ Roadmap & Future Vision
+
+Neurova AI is actively evolving. Our goal is to bring advanced, multi-modal, and edge-computed AI capabilities to mobile devices without compromising on battery or speed.
+
+- [ ] **AI Memory Persistence:** The model will learn your preferences, code styles, and context across multiple distinct chat sessions.
+- [ ] **Image Generation:** Native text-to-image synthesis straight within the chat bubble.
+- [ ] **Vision Capabilities (Ask Image):** Snap a photo or upload an image and have the AI instantly analyze, debug, or describe the visual context.
+- [ ] **On-Device Voice Mode:** Advanced natural language voice mode processed strictly on-device for zero-latency, private voice interactions.
+- [ ] **Local Hardware Accelerated Models:** Complete detachment from the cloud. Download quantized open-source models (GGUF/MLX equivalents for mobile) and run them natively on your phone's Neural Processing Unit (NPU).
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+*   Node.js (v18+)
+*   Expo CLI
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/neurova-ai.git
+   cd neurova-ai
+   ```
+
+2. **Install Dependencies:**
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. **Run the Development Server:**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+### Building for Release
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Thanks to the automated GitHub Actions pipeline, you can simply create a **Release** on your GitHub repository. The workflow will automatically prebuild the Android architecture, invoke Gradle, and attach the lightweight, architecture-specific `arm64`, `x86`, and `Universal` APKs to your release for immediate sideloading.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+<div align="center">
+  <i>Built to push the boundaries of what a mobile AI client can be.</i>
+</div>
